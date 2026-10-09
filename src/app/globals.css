@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --paper: #f3eee4;
+  --paper-raised: #fffaf3;
+  --ink: #1b1612;
+  --muted: #5c534a;
+  --line: #e0d3c2;
+  --accent: #0c6b52;
+  --accent-foreground: #f7f4ee;
+  --accent-soft: #e5f3ed;
+  color-scheme: light;
+}
+
+.dark {
+  --paper: #12100e;
+  --paper-raised: #1c1916;
+  --ink: #f4efe6;
+  --muted: #c4b6a6;
+  --line: #3a332c;
+  --accent: #3dba9a;
+  --accent-foreground: #071410;
+  --accent-soft: #163028;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-card: var(--paper-raised);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-mono: ui-monospace, "Cascadia Code", "Segoe UI Mono", monospace;
+}
+
+body {
+  background:
+    radial-gradient(900px 420px at 0% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--accent) 28%, transparent);
+}

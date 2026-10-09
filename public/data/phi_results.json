@@ -1,0 +1,417 @@
+{
+  "computed_at": "2026-10-09T16:30:36.841214+00:00",
+  "instrument": "PyPhi IIT-4.0 via algorithmacy-lab",
+  "classifier": "org_frontier.classifier.classify_rules \u2014 \u03a6 over the minimum-information partition; triadic iff max \u03a6_MIP > 1e-9, else dyadic",
+  "lab": "https://github.com/rogerSuperBuilderAlpha/algorithmacy-lab",
+  "pyphi": "pyphi @ git+https://github.com/wmayner/pyphi@feature/iit-4.0",
+  "labels": [
+    "U",
+    "A",
+    "C"
+  ],
+  "label_meaning": {
+    "U": "user",
+    "A": "algorithm",
+    "C": "counterpart"
+  },
+  "control_passed": true,
+  "control_log": "phi/instrument_control.txt",
+  "switches": {
+    "adapts": "Q4 score >= 1 keeps the base rule for U; otherwise U'=U",
+    "alternatives": "Q6 score == 2 sets C' = (base C) OR U; otherwise the base rule for C",
+    "key": "platform:adapts:alternatives"
+  },
+  "platforms": {
+    "instagram": {
+      "phi": 2.0,
+      "verdict": "triadic",
+      "competence": "algorithmacy",
+      "major_complex": [
+        "U",
+        "A",
+        "C"
+      ],
+      "major_complex_phi": 2.0,
+      "rules": "A'=U AND C; U'=A; C'=A",
+      "parties": {
+        "U": "creator posts",
+        "A": "feed ranker",
+        "C": "audience"
+      },
+      "mip_partition": "2 parts: {U,AC}",
+      "mip_state": [
+        1,
+        1,
+        1
+      ],
+      "n_states_evaluated": 4,
+      "n_states_irreducible": 1,
+      "phi_profile": [
+        {
+          "state": {
+            "U": 0,
+            "A": 0,
+            "C": 0
+          },
+          "phi": 0.0
+        },
+        {
+          "state": {
+            "U": 0,
+            "A": 1,
+            "C": 0
+          },
+          "phi": 0.0
+        },
+        {
+          "state": {
+            "U": 1,
+            "A": 0,
+            "C": 1
+          },
+          "phi": 0.0
+        },
+        {
+          "state": {
+            "U": 1,
+            "A": 1,
+            "C": 1
+          },
+          "phi": 2.0
+        }
+      ]
+    },
+    "uber": {
+      "phi": 1.0,
+      "verdict": "triadic",
+      "competence": "algorithmacy",
+      "major_complex": [
+        "A",
+        "C"
+      ],
+      "major_complex_phi": 2.0,
+      "rules": "A'=U AND C; U'=A; C'=A AND U",
+      "parties": {
+        "U": "driver goes online",
+        "A": "dispatch",
+        "C": "rider"
+      },
+      "mip_partition": "2 parts: {U,AC}",
+      "mip_state": [
+        1,
+        1,
+        1
+      ],
+      "n_states_evaluated": 5,
+      "n_states_irreducible": 2,
+      "phi_profile": [
+        {
+          "state": {
+            "U": 0,
+            "A": 0,
+            "C": 0
+          },
+          "phi": 0.0
+        },
+        {
+          "state": {
+            "U": 1,
+            "A": 0,
+            "C": 0
+          },
+          "phi": 0.0
+        },
+        {
+          "state": {
+            "U": 0,
+            "A": 1,
+            "C": 0
+          },
+          "phi": 0.0
+        },
+        {
+          "state": {
+            "U": 1,
+            "A": 0,
+            "C": 1
+          },
+          "phi": 0.41503749927884376
+        },
+        {
+          "state": {
+            "U": 1,
+            "A": 1,
+            "C": 1
+          },
+          "phi": 1.0
+        }
+      ]
+    },
+    "email": {
+      "phi": 0.0,
+      "verdict": "dyadic",
+      "competence": "literacy",
+      "major_complex": [
+        "U"
+      ],
+      "major_complex_phi": 1.0,
+      "rules": "A'=U; C'=A; U'=U",
+      "parties": {
+        "U": "sender",
+        "A": "mail server",
+        "C": "recipient"
+      },
+      "mip_partition": "(factors)",
+      "mip_state": null,
+      "n_states_evaluated": 4,
+      "n_states_irreducible": 0,
+      "phi_profile": [
+        {
+          "state": {
+            "U": 0,
+            "A": 0,
+            "C": 0
+          },
+          "phi": 0.0
+        },
+        {
+          "state": {
+            "U": 1,
+            "A": 1,
+            "C": 0
+          },
+          "phi": 0.0
+        },
+        {
+          "state": {
+            "U": 0,
+            "A": 0,
+            "C": 1
+          },
+          "phi": 0.0
+        },
+        {
+          "state": {
+            "U": 1,
+            "A": 1,
+            "C": 1
+          },
+          "phi": 0.0
+        }
+      ]
+    }
+  },
+  "variants": {
+    "instagram:false:false": {
+      "platform": "instagram",
+      "adapts": false,
+      "alternatives": false,
+      "phi": 0.0,
+      "verdict": "dyadic",
+      "competence": "literacy",
+      "major_complex": [
+        "A",
+        "C"
+      ],
+      "major_complex_phi": 2.0,
+      "u_in_major_complex": false,
+      "rules": "A'=U AND C; U'=U; C'=A",
+      "mip_partition": "(factors)",
+      "n_states_evaluated": 6,
+      "n_states_irreducible": 0
+    },
+    "instagram:false:true": {
+      "platform": "instagram",
+      "adapts": false,
+      "alternatives": true,
+      "phi": 0.0,
+      "verdict": "dyadic",
+      "competence": "literacy",
+      "major_complex": [
+        "U"
+      ],
+      "major_complex_phi": 1.0,
+      "u_in_major_complex": true,
+      "rules": "A'=U AND C; U'=U; C'=(A) OR U",
+      "mip_partition": "(factors)",
+      "n_states_evaluated": 4,
+      "n_states_irreducible": 0
+    },
+    "instagram:true:false": {
+      "platform": "instagram",
+      "adapts": true,
+      "alternatives": false,
+      "phi": 2.0,
+      "verdict": "triadic",
+      "competence": "algorithmacy",
+      "major_complex": [
+        "U",
+        "A",
+        "C"
+      ],
+      "major_complex_phi": 2.0,
+      "u_in_major_complex": true,
+      "rules": "A'=U AND C; U'=A; C'=A",
+      "mip_partition": "2 parts: {U,AC}",
+      "n_states_evaluated": 4,
+      "n_states_irreducible": 1
+    },
+    "instagram:true:true": {
+      "platform": "instagram",
+      "adapts": true,
+      "alternatives": true,
+      "phi": 0.41503749927884376,
+      "verdict": "triadic",
+      "competence": "algorithmacy",
+      "major_complex": [
+        "U",
+        "A"
+      ],
+      "major_complex_phi": 2.0,
+      "u_in_major_complex": true,
+      "rules": "A'=U AND C; U'=A; C'=(A) OR U",
+      "mip_partition": "2 parts: {UA,C}",
+      "n_states_evaluated": 5,
+      "n_states_irreducible": 1
+    },
+    "uber:false:false": {
+      "platform": "uber",
+      "adapts": false,
+      "alternatives": false,
+      "phi": 0.0,
+      "verdict": "dyadic",
+      "competence": "literacy",
+      "major_complex": [
+        "A",
+        "C"
+      ],
+      "major_complex_phi": 2.0,
+      "u_in_major_complex": false,
+      "rules": "A'=U AND C; U'=U; C'=A AND U",
+      "mip_partition": "(factors)",
+      "n_states_evaluated": 5,
+      "n_states_irreducible": 0
+    },
+    "uber:false:true": {
+      "platform": "uber",
+      "adapts": false,
+      "alternatives": true,
+      "phi": 0.0,
+      "verdict": "dyadic",
+      "competence": "literacy",
+      "major_complex": [
+        "U"
+      ],
+      "major_complex_phi": 1.0,
+      "u_in_major_complex": true,
+      "rules": "A'=U AND C; U'=U; C'=(A AND U) OR U",
+      "mip_partition": "(factors)",
+      "n_states_evaluated": 3,
+      "n_states_irreducible": 0
+    },
+    "uber:true:false": {
+      "platform": "uber",
+      "adapts": true,
+      "alternatives": false,
+      "phi": 1.0,
+      "verdict": "triadic",
+      "competence": "algorithmacy",
+      "major_complex": [
+        "A",
+        "C"
+      ],
+      "major_complex_phi": 2.0,
+      "u_in_major_complex": false,
+      "rules": "A'=U AND C; U'=A; C'=A AND U",
+      "mip_partition": "2 parts: {U,AC}",
+      "n_states_evaluated": 5,
+      "n_states_irreducible": 2
+    },
+    "uber:true:true": {
+      "platform": "uber",
+      "adapts": true,
+      "alternatives": true,
+      "phi": 2.0,
+      "verdict": "triadic",
+      "competence": "algorithmacy",
+      "major_complex": [
+        "U",
+        "A"
+      ],
+      "major_complex_phi": 2.0,
+      "u_in_major_complex": true,
+      "rules": "A'=U AND C; U'=A; C'=(A AND U) OR U",
+      "mip_partition": "2 parts: {UA,C}",
+      "n_states_evaluated": 6,
+      "n_states_irreducible": 2
+    },
+    "email:false:false": {
+      "platform": "email",
+      "adapts": false,
+      "alternatives": false,
+      "phi": 0.0,
+      "verdict": "dyadic",
+      "competence": "literacy",
+      "major_complex": [
+        "U"
+      ],
+      "major_complex_phi": 1.0,
+      "u_in_major_complex": true,
+      "rules": "A'=U; U'=U; C'=A",
+      "mip_partition": "(factors)",
+      "n_states_evaluated": 4,
+      "n_states_irreducible": 0
+    },
+    "email:false:true": {
+      "platform": "email",
+      "adapts": false,
+      "alternatives": true,
+      "phi": 0.0,
+      "verdict": "dyadic",
+      "competence": "literacy",
+      "major_complex": [
+        "U"
+      ],
+      "major_complex_phi": 1.0,
+      "u_in_major_complex": true,
+      "rules": "A'=U; U'=U; C'=(A) OR U",
+      "mip_partition": "(factors)",
+      "n_states_evaluated": 3,
+      "n_states_irreducible": 0
+    },
+    "email:true:false": {
+      "platform": "email",
+      "adapts": true,
+      "alternatives": false,
+      "phi": 0.0,
+      "verdict": "dyadic",
+      "competence": "literacy",
+      "major_complex": [
+        "U"
+      ],
+      "major_complex_phi": 1.0,
+      "u_in_major_complex": true,
+      "rules": "A'=U; U'=U; C'=A",
+      "mip_partition": "(factors)",
+      "n_states_evaluated": 4,
+      "n_states_irreducible": 0
+    },
+    "email:true:true": {
+      "platform": "email",
+      "adapts": true,
+      "alternatives": true,
+      "phi": 0.0,
+      "verdict": "dyadic",
+      "competence": "literacy",
+      "major_complex": [
+        "U"
+      ],
+      "major_complex_phi": 1.0,
+      "u_in_major_complex": true,
+      "rules": "A'=U; U'=U; C'=(A) OR U",
+      "mip_partition": "(factors)",
+      "n_states_evaluated": 3,
+      "n_states_irreducible": 0
+    }
+  }
+}
