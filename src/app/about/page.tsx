@@ -4,7 +4,7 @@ import Link from "next/link";
 import { TriadDiagram } from "@/components/triad-diagram";
 import { VariantTable } from "@/components/variant-table";
 import { questions } from "@/data/questions";
-import { labLicense, labUrl, productionUrl } from "@/data/site";
+import { labLicense, labUrl } from "@/data/site";
 import { edgesFromRules, mathFindings } from "@/lib/explain";
 import { phiFile, platformPhi } from "@/lib/phi";
 import { formatPhi } from "@/lib/utils";
@@ -40,9 +40,9 @@ export default function AboutPage() {
           October 2026.
         </p>
         <p className="mt-3 text-base leading-7">
-          <a className="underline decoration-line underline-offset-4" href={productionUrl}>
+          <Link className="underline decoration-line underline-offset-4" href="/">
             Open the live app
-          </a>
+          </Link>
           . The research it borrows is{" "}
           <a className="underline decoration-line underline-offset-4" href={labUrl}>
             algorithmacy-lab

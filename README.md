@@ -2,7 +2,7 @@
 
 A one-minute check: is this app a pipe or a third player, and are you steering it?
 
-Live: [algorithmacy-coach-in4yqz6rd-hari-eaa7.vercel.app](https://algorithmacy-coach-in4yqz6rd-hari-eaa7.vercel.app)
+The public address is whatever domain the host attaches. Share text and the QR code use that host. Nothing in the app is pinned to one URL.
 
 ![Landing page](docs/screenshots/landing-desktop.png)
 
@@ -33,7 +33,7 @@ Live: [algorithmacy-coach-in4yqz6rd-hari-eaa7.vercel.app](https://algorithmacy-c
 
 ## The research
 
-Roger Hunt's [algorithmacy-lab](https://github.com/rogerSuperBuilderAlpha/algorithmacy-lab) asks whether a worker, a mediating system, and a counterpart form an irreducible whole. Dyadic coordination factors into independent pieces and needs ordinary literacy. Triadic coordination stays irreducible across those three parties and needs algorithmacy. The lab measures that with exact Φ (IIT 4.0, PyPhi), fixes hypotheses before computing, reports nulls, and asks for real-world data. The lab is MIT licensed. The full walkthrough is the [case study](https://algorithmacy-coach-in4yqz6rd-hari-eaa7.vercel.app/about).
+Roger Hunt's [algorithmacy-lab](https://github.com/rogerSuperBuilderAlpha/algorithmacy-lab) asks whether a worker, a mediating system, and a counterpart form an irreducible whole. Dyadic coordination factors into independent pieces and needs ordinary literacy. Triadic coordination stays irreducible across those three parties and needs algorithmacy. The lab measures that with exact Φ (IIT 4.0, PyPhi), fixes hypotheses before computing, reports nulls, and asks for real-world data. The lab is MIT licensed. The full walkthrough is the case study at `/about` on the deployed site.
 
 ## Diagrams
 
@@ -149,6 +149,17 @@ Each answer scores 0 (passive), 1 (mixed), or 2 (deliberate). Total 0–12. Leve
 | 4 | Adapting | I never change how I act for it | Sometimes, without a plan | I test times, formats or zones on purpose |
 | 5 | Noticing | I don't notice being steered | Occasionally | I notice and decide whether to go along |
 | 6 | Alternatives | This app is my only channel | I use one other channel a bit | I keep real alternatives |
+
+## Host on a domain
+
+The app is ready for someone else to host. Share links, the QR code, and “Open the live app” follow the domain that serves the site. Deploying this copy does not move any existing domain or alias.
+
+```bash
+npm install
+npx vercel --prod
+```
+
+Use the host’s own Vercel account so the project is theirs. After the deploy is ready, open that project’s Domains settings and add their domain. Point the domain’s DNS at the records Vercel shows. Optional: set `XAI_API_KEY` and `XAI_MODEL` in that project’s environment. Tips still work if those are left blank.
 
 ## Run locally
 
