@@ -17,7 +17,7 @@ Run it locally with `npm run dev` and open [http://127.0.0.1:43123](http://127.0
 
 ## Riya and Sam
 
-Same platform, same structural verdict, different people.
+Same platform, different variants, different people.
 
 | | Riya | Sam |
 |---|---|---|
@@ -55,7 +55,7 @@ flowchart LR
   V -- no --> DY[Dyadic: the app is a pipe]
 ```
 
-The verdict is the lab's own classifier: Φ over the minimum-information partition (`org_frontier.classifier.classify_rules`). Triadic when max Φ_MIP > 1e-9, otherwise dyadic. Numbers below are whatever that run wrote into `public/data/phi_results.json`. They are not edited by hand.
+The verdict is the lab's own classifier: Φ over the minimum-information partition (`org_frontier.classifier.classify_rules`). Triadic when max Φ_MIP > 1e-9, otherwise dyadic. That call is on the whole three-node system, at its most-integrated reachable state. It is not Φ of the major complex, which is recorded separately with `org_frontier.probes.lib.major_complex`. A whole-system triadic label can still have a two-party core. Numbers below are whatever that run wrote into `public/data/phi_results.json`. They are not edited by hand. The card rounds Φ to two decimals.
 
 The instrument control (`python -m org_frontier.classifier.validate`, the core check in `ci/reproduce.json`) passed before these values were written. See `phi/instrument_control.txt`.
 
@@ -63,9 +63,9 @@ The three bases, before either switch:
 
 | Platform | U (user) | A (algorithm) | C (counterpart) | Rules | Verdict | Φ |
 |---|---|---|---|---|---|---|
-| Instagram | creator posts | feed ranker | audience | A'=U AND C; U'=A; C'=A | triadic | 2 |
-| Uber | driver goes online | dispatch | rider | A'=U AND C; U'=A; C'=A AND U | triadic | 1 |
-| Email (comparison) | sender | mail server | recipient | A'=U; C'=A; U'=U | dyadic | 0 |
+| Instagram | creator posts | feed ranker | audience | A'=U AND C; U'=A; C'=A | triadic | 2.00 |
+| Uber | driver goes online | dispatch | rider | A'=U AND C; U'=A; C'=A AND U | triadic | 1.00 |
+| Email (comparison) | sender | mail server | recipient | A'=U; C'=A; U'=U | dyadic | 0.00 |
 
 Email stays the forward-only chain from the lab's back-edge thread: the sender holds its own state and does not read the recipient. That base is what the switches edit.
 
@@ -74,24 +74,24 @@ Two switches, applied on top of each base, make twelve models. Keys are `platfor
 - Adapts is question 4 scored 1 or 2. If not, `U' = U`: the user ignores the algorithm. If so, U keeps the base rule.
 - Alternatives is question 6 scored 2. If so, `C' = (base rule for C) OR U`: a direct channel from the user to the counterpart. If not, C keeps the base rule.
 
-The results screen looks up that key. If U is in the major complex it says "You are part of the tangle". If not, "You sit outside the tangle". Φ is the classifier's max Φ_MIP for that variant. None of these numbers were typed in by hand.
+The results screen looks up that key. "You are part of the tangle" appears only when Φ > 0 and U is in the major complex. Otherwise, if Φ > 0, the card says "You sit outside the tangle". If Φ = 0, it says "There's no tangle here: {app} acts like a pipe" and does not mention membership. When the classifier's whole-system label is triadic and the major complex has fewer than three parties, the card keeps "triadic" and names that core in plain English. Φ on the card is the classifier's max Φ_MIP, rounded to two decimals. None of these numbers were typed in by hand.
 
-| Key | Rules | Verdict | Φ | Major complex | U in it |
+| Key | Rules | Verdict | Φ | Major complex | Card |
 |---|---|---|---|---|---|
-| `instagram:false:false` | A'=U AND C; U'=U; C'=A | dyadic | 0 | A, C | no |
-| `instagram:false:true` | A'=U AND C; U'=U; C'=(A) OR U | dyadic | 0 | U | yes |
-| `instagram:true:false` | A'=U AND C; U'=A; C'=A | triadic | 2 | U, A, C | yes |
-| `instagram:true:true` | A'=U AND C; U'=A; C'=(A) OR U | triadic | 0.41503749927884376 | U, A | yes |
-| `uber:false:false` | A'=U AND C; U'=U; C'=A AND U | dyadic | 0 | A, C | no |
-| `uber:false:true` | A'=U AND C; U'=U; C'=(A AND U) OR U | dyadic | 0 | U | yes |
-| `uber:true:false` | A'=U AND C; U'=A; C'=A AND U | triadic | 1 | A, C | no |
-| `uber:true:true` | A'=U AND C; U'=A; C'=(A AND U) OR U | triadic | 2 | U, A | yes |
-| `email:false:false` | A'=U; U'=U; C'=A | dyadic | 0 | U | yes |
-| `email:false:true` | A'=U; U'=U; C'=(A) OR U | dyadic | 0 | U | yes |
-| `email:true:false` | A'=U; U'=U; C'=A | dyadic | 0 | U | yes |
-| `email:true:true` | A'=U; U'=U; C'=(A) OR U | dyadic | 0 | U | yes |
+| `instagram:false:false` | A'=U AND C; U'=U; C'=A | dyadic | 0.00 | A, C | There's no tangle here: Instagram acts like a pipe |
+| `instagram:false:true` | A'=U AND C; U'=U; C'=(A) OR U | dyadic | 0.00 | U | There's no tangle here: Instagram acts like a pipe |
+| `instagram:true:false` | A'=U AND C; U'=A; C'=A | triadic | 2.00 | U, A, C | You are part of the tangle |
+| `instagram:true:true` | A'=U AND C; U'=A; C'=(A) OR U | triadic | 0.42 | U, A | You are part of the tangle. The core is you and the ranker. |
+| `uber:false:false` | A'=U AND C; U'=U; C'=A AND U | dyadic | 0.00 | A, C | There's no tangle here: Uber acts like a pipe |
+| `uber:false:true` | A'=U AND C; U'=U; C'=(A AND U) OR U | dyadic | 0.00 | U | There's no tangle here: Uber acts like a pipe |
+| `uber:true:false` | A'=U AND C; U'=A; C'=A AND U | triadic | 1.00 | A, C | You sit outside the tangle. The core is the dispatch and the rider. |
+| `uber:true:true` | A'=U AND C; U'=A; C'=(A AND U) OR U | triadic | 2.00 | U, A | You are part of the tangle. The core is you and the dispatch. |
+| `email:false:false` | A'=U; U'=U; C'=A | dyadic | 0.00 | U | There's no tangle here: Email acts like a pipe |
+| `email:false:true` | A'=U; U'=U; C'=(A) OR U | dyadic | 0.00 | U | There's no tangle here: Email acts like a pipe |
+| `email:true:false` | A'=U; U'=U; C'=A | dyadic | 0.00 | U | There's no tangle here: Email acts like a pipe |
+| `email:true:true` | A'=U; U'=U; C'=(A) OR U | dyadic | 0.00 | U | There's no tangle here: Email acts like a pipe |
 
-Email's base already sets `U' = U`, so the adapts switch does not change its user rule. All four email variants stay dyadic at Φ 0, and the major complex is only U, so the card says you are part of the tangle even though the three-node system factors. Uber with adapts on and alternatives off is triadic at Φ 1, and U is not in the major complex (A, C): the system is irreducible and you still sit outside it.
+Email's base already sets `U' = U`, so the adapts switch does not change its user rule. All four email variants stay dyadic at Φ 0.00, so the card calls Email a pipe and does not mention membership. `instagram:true:true` and `uber:true:true` stay triadic while the core is only you and the algorithm. `uber:true:false` stays triadic at Φ 1.00 with the core on dispatch and the rider, so you sit outside it.
 
 ```json
 {

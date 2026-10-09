@@ -17,6 +17,5 @@ export function clampWords(text: string, max: number) {
 
 export function formatPhi(phi: number | null) {
   if (phi === null || Number.isNaN(phi)) return "—";
-  if (Number.isInteger(phi)) return String(phi);
-  return phi.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
+  return phi.toFixed(2);
 }

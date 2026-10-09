@@ -8,8 +8,8 @@ import { Button } from "@/components/ui/button";
 import { personas, type PersonaId } from "@/data/personas";
 import { getPlatform, platforms, type PlatformId } from "@/data/platforms";
 import { fillTemplate, questions } from "@/data/questions";
-import { buildFallback, type CoachCopy } from "@/lib/coach-copy";
-import { tangleLine, variantPhi } from "@/lib/phi";
+import { buildFallback, displayExplanation, type CoachCopy } from "@/lib/coach-copy";
+import { coreLine, tangleKind, tangleLine, variantPhi } from "@/lib/phi";
 import { scoreAnswers, shareText } from "@/lib/score";
 import { formatPhi } from "@/lib/utils";
 
@@ -50,7 +50,7 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
           verdict: triad.verdict,
           phi: triad.phi,
           major_complex: triad.major_complex,
-          tangle: tangleLine(triad.uInMajorComplex),
+          tangle: tangleLine(triad.phi, triad.uInMajorComplex, getPlatform(platformId).app),
         },
       }),
     })
@@ -150,6 +150,10 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
   const scored = ready ? scoreAnswers(answers) : null;
   const triad = ready && platformId ? variantPhi(platformId, answers) : null;
   const copy = ready && platformId ? (remote ?? buildFallback(platformId, answers)) : null;
+  const membership =
+    triad && platform ? tangleLine(triad.phi, triad.uInMajorComplex, platform.app) : "";
+  const core =
+    triad && platform ? coreLine(triad.verdict, triad.major_complex, platform.diagram) : null;
   const question = phase === "ask" ? questions[qIndex] : null;
 
   const personasBar = (
@@ -242,7 +246,7 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
           data-score={scored.score}
           data-level={scored.level}
           data-variant={triad.key}
-          data-tangle={triad.uInMajorComplex ? "part" : "outside"}
+          data-tangle={tangleKind(triad.phi, triad.uInMajorComplex) ?? "pending"}
           data-phi={triad.phi === null ? "" : formatPhi(triad.phi)}
           data-verdict={triad.verdict ?? "pending"}
         >
@@ -258,14 +262,21 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
             <p className="text-sm uppercase tracking-[0.16em] text-muted">Triad Check</p>
             {triad.verdict && triad.phi !== null ? (
               <>
-                <h2 className="mt-2 font-display text-3xl leading-tight">{tangleLine(triad.uInMajorComplex)}</h2>
+                <h2 className="mt-2 font-display text-3xl leading-tight">{membership}</h2>
                 <p className="mt-1 text-lg">Φ {formatPhi(triad.phi)}</p>
                 <p className="text-base capitalize text-muted">{triad.verdict}</p>
+                {core ? (
+                  <p className="mt-1 text-base" data-testid="core-members">
+                    {core}
+                  </p>
+                ) : null}
               </>
             ) : (
               <h2 className="mt-2 font-display text-3xl leading-tight">Structural verdict coming soon</h2>
             )}
-            <p className="mt-3 text-base leading-7">{copy.explanation}</p>
+            <p className="mt-3 text-base leading-7">
+              {platformId ? displayExplanation(platformId, answers, copy.explanation) : copy.explanation}
+            </p>
             <div className="mt-4">
               <TriadDiagram verdict={triad.verdict} labels={platform.diagram} />
             </div>

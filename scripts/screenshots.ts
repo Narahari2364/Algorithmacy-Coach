@@ -78,7 +78,12 @@ async function main() {
   await riya.getByText("1/12").waitFor();
   await riya.getByRole("heading", { name: "Passive" }).waitFor();
   const riyaText = await riyaResults.innerText();
-  if (!riyaText.includes("You sit outside the tangle") || !riyaText.includes("Φ 0") || !riyaText.includes("Dyadic")) {
+  if (
+    !riyaText.includes("There's no tangle here: Instagram acts like a pipe") ||
+    !riyaText.includes("Φ 0.00") ||
+    !riyaText.includes("Dyadic") ||
+    /part of the tangle|outside the tangle/i.test(riyaText)
+  ) {
     throw new Error(`Riya triad text missing computed values:\n${riyaText}`);
   }
   if (/major complex/i.test(riyaText)) {
@@ -92,7 +97,11 @@ async function main() {
   await sam.getByText("11/12").waitFor();
   await sam.getByRole("heading", { name: "Deliberate" }).waitFor();
   const samText = await sam.getByTestId("results").innerText();
-  if (!samText.includes("You are part of the tangle") || !samText.includes("Φ 0.415")) {
+  if (
+    !samText.includes("You are part of the tangle") ||
+    !samText.includes("Φ 0.42") ||
+    !samText.includes("The core is you and the ranker.")
+  ) {
     throw new Error(`Sam triad text missing computed values:\n${samText}`);
   }
   await shot(sam, "results-sam-mobile.png");
@@ -106,10 +115,11 @@ async function main() {
   await emailResults.waitFor();
   const emailText = await emailResults.innerText();
   if (
-    !emailText.includes("You are part of the tangle") ||
+    !emailText.includes("There's no tangle here: Email acts like a pipe") ||
     !emailText.includes("Dyadic") ||
-    !emailText.includes("Φ 0") ||
-    !emailText.includes("A'=U; U'=U; C'=A")
+    !emailText.includes("Φ 0.00") ||
+    !emailText.includes("A'=U; U'=U; C'=A") ||
+    /part of the tangle|outside the tangle/i.test(emailText)
   ) {
     throw new Error(`Email card should show the computed dyadic verdict:\n${emailText}`);
   }

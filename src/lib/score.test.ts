@@ -3,13 +3,13 @@ import test from "node:test";
 
 import { fallbackTips } from "../data/fallbackTips";
 import { personas } from "../data/personas";
-import { platformIds } from "../data/platforms";
+import { getPlatform, platformIds } from "../data/platforms";
 import { questions } from "../data/questions";
-import { buildFallback } from "./coach-copy";
+import { buildFallback, displayExplanation } from "./coach-copy";
 import { parseCoachResponse } from "./parse-coach";
-import { phiFile, platformPhi, variantKey, variantPhi } from "./phi";
+import { coreLine, phiFile, platformPhi, tangleLine, variantKey, variantPhi } from "./phi";
 import { scoreAnswers, shareText, weakestQuestions } from "./score";
-import { wordCount } from "./utils";
+import { formatPhi, wordCount } from "./utils";
 
 test("Riya and Sam match the rubric", () => {
   const riya = scoreAnswers(personas.riya.answers);
@@ -82,6 +82,91 @@ test("twelve personalized variants come from the precompute file", () => {
   assert.equal(email.phi, 0);
   assert.equal(email.uInMajorComplex, true);
   assert.equal(email.rules, "A'=U; U'=U; C'=A");
+});
+
+test("phi displays to two decimals and membership needs a tangle", () => {
+  assert.equal(formatPhi(0), "0.00");
+  assert.equal(formatPhi(1), "1.00");
+  assert.equal(formatPhi(2), "2.00");
+  assert.equal(formatPhi(0.41503749927884376), "0.42");
+
+  const expected: Record<string, { line: string; core: string | null }> = {
+    "instagram:false:false": {
+      line: "There's no tangle here: Instagram acts like a pipe",
+      core: null,
+    },
+    "instagram:false:true": {
+      line: "There's no tangle here: Instagram acts like a pipe",
+      core: null,
+    },
+    "instagram:true:false": {
+      line: "You are part of the tangle",
+      core: null,
+    },
+    "instagram:true:true": {
+      line: "You are part of the tangle",
+      core: "The core is you and the ranker.",
+    },
+    "uber:false:false": {
+      line: "There's no tangle here: Uber acts like a pipe",
+      core: null,
+    },
+    "uber:false:true": {
+      line: "There's no tangle here: Uber acts like a pipe",
+      core: null,
+    },
+    "uber:true:false": {
+      line: "You sit outside the tangle",
+      core: "The core is the dispatch and the rider.",
+    },
+    "uber:true:true": {
+      line: "You are part of the tangle",
+      core: "The core is you and the dispatch.",
+    },
+    "email:false:false": {
+      line: "There's no tangle here: Email acts like a pipe",
+      core: null,
+    },
+    "email:false:true": {
+      line: "There's no tangle here: Email acts like a pipe",
+      core: null,
+    },
+    "email:true:false": {
+      line: "There's no tangle here: Email acts like a pipe",
+      core: null,
+    },
+    "email:true:true": {
+      line: "There's no tangle here: Email acts like a pipe",
+      core: null,
+    },
+  };
+
+  for (const [key, want] of Object.entries(expected)) {
+    const row = phiFile.variants[key as keyof typeof phiFile.variants];
+    const platform = getPlatform(row.platform);
+    const line = tangleLine(row.phi, row.u_in_major_complex, platform.app);
+    const core = coreLine(row.verdict, row.major_complex, platform.diagram);
+    assert.equal(line, want.line, key);
+    assert.equal(core, want.core, key);
+    assert.equal(formatPhi(row.phi), row.phi === 0.41503749927884376 ? "0.42" : row.phi.toFixed(2));
+    if (!(row.phi > 0)) {
+      assert.equal(/part of the tangle|outside the tangle/i.test(line), false, key);
+    } else if ((row.major_complex ?? []).length < 3) {
+      assert.equal(row.verdict, "triadic", key);
+      assert.ok(core, key);
+    }
+  }
+
+  const emailCopy = buildFallback("email", [0, 0, 0, 0, 0, 0]);
+  assert.match(emailCopy.explanation, /There's no tangle here: Email acts like a pipe/);
+  assert.equal(/part of the tangle|outside the tangle/i.test(emailCopy.explanation), false);
+  const replaced = displayExplanation(
+    "email",
+    [0, 0, 0, 0, 0, 0],
+    "You are part of the tangle even though this is a pipe.",
+  );
+  assert.match(replaced, /There's no tangle here: Email acts like a pipe/);
+  assert.equal(/part of the tangle|outside the tangle/i.test(replaced), false);
 });
 
 test("fallback copy stays inside the word limits", () => {

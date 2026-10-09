@@ -48,8 +48,44 @@ export function variantKey(platform: PlatformId, answers: number[]) {
   return `${platform}:${switches.adapts}:${switches.alternatives}`;
 }
 
-export function tangleLine(uInMajorComplex: boolean) {
-  return uInMajorComplex ? "You are part of the tangle" : "You sit outside the tangle";
+export type TangleKind = "pipe" | "part" | "outside";
+
+export type PartyLabels = { U: string; A: string; C: string };
+
+/** Membership needs a real tangle (Φ > 0) and the user inside the major complex. */
+export function tangleKind(phi: number | null, uInMajorComplex: boolean): TangleKind | null {
+  if (phi === null) return null;
+  if (!(phi > 0)) return "pipe";
+  return uInMajorComplex ? "part" : "outside";
+}
+
+export function tangleLine(phi: number | null, uInMajorComplex: boolean, app: string) {
+  const kind = tangleKind(phi, uInMajorComplex);
+  if (kind === "pipe") return `There's no tangle here: ${app} acts like a pipe`;
+  if (kind === "part") return "You are part of the tangle";
+  if (kind === "outside") return "You sit outside the tangle";
+  return "";
+}
+
+function partyPhrase(code: string, labels: PartyLabels) {
+  if (code === "U") return "you";
+  const label = labels[code as keyof PartyLabels];
+  return `the ${label.toLowerCase()}`;
+}
+
+/** Whole-system triadic rows whose major complex has fewer than three parties. */
+export function coreLine(
+  verdict: TriadVerdict | null,
+  major: string[] | null,
+  labels: PartyLabels,
+) {
+  if (verdict !== "triadic" || !major || major.length === 0 || major.length >= 3) return null;
+  const phrases = (["U", "A", "C"] as const)
+    .filter((code) => major.includes(code))
+    .map((code) => partyPhrase(code, labels));
+  if (phrases.length === 1) return `The core is ${phrases[0]}.`;
+  if (phrases.length === 2) return `The core is ${phrases[0]} and ${phrases[1]}.`;
+  return null;
 }
 
 export function variantPhi(platform: PlatformId, answers: number[]): VariantPhi {

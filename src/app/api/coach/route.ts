@@ -6,7 +6,7 @@ import { fillTemplate, questions } from "@/data/questions";
 import { getPlatform, isPlatformId } from "@/data/platforms";
 import { NextResponse } from "next/server";
 
-const SYSTEM_PROMPT = `You are Algorithmacy Coach. Algorithmacy is the skill of navigating a coordination that runs through an algorithm you do not control. You receive a platform, a user's six rubric answers (0 passive, 1 mixed, 2 deliberate), their score and level, and a structural verdict for the platform (triadic means the algorithm is an irreducible third party between the user and the counterpart; dyadic means it acts like a pipe).
+const SYSTEM_PROMPT = `You are Algorithmacy Coach. Algorithmacy is the skill of navigating a coordination that runs through an algorithm you do not control. You receive a platform, a user's six rubric answers (0 passive, 1 mixed, 2 deliberate), their score and level, and a structural verdict for the platform (triadic means the algorithm is an irreducible third party between the user and the counterpart; dyadic means it acts like a pipe). If the tangle line says there is no tangle, do not say the person is inside or outside one.
 Reply with JSON only, no markdown, matching:
 {"headline": string (max 12 words), "explanation": string (max 45 words, plain English, mention the verdict), "tips": [string, string, string] (each max 25 words, concrete actions for this platform, aimed at their weakest answers)}
 Be warm and direct. No jargon beyond the word "algorithm". Never claim the score is a scientific measurement.`;
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
       verdict: triad.verdict,
       phi: triad.phi,
       major_complex: triad.major_complex,
-      tangle: tangleLine(triad.uInMajorComplex),
+      tangle: tangleLine(triad.phi, triad.uInMajorComplex, platform.app),
       rules: triad.rules,
     },
   });

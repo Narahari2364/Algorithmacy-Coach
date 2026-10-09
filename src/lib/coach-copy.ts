@@ -1,6 +1,6 @@
 import { fallbackTips } from "@/data/fallbackTips";
 import { getPlatform, type PlatformId } from "@/data/platforms";
-import { tangleLine, variantPhi } from "@/lib/phi";
+import { tangleKind, tangleLine, variantPhi } from "@/lib/phi";
 import { scoreAnswers, weakestQuestions, type Level } from "@/lib/score";
 import { formatPhi } from "@/lib/utils";
 
@@ -23,7 +23,16 @@ export function fallbackExplanation(platformId: PlatformId, answers: number[]) {
     return `Structural verdict coming soon. The model rules are ${triad.rules}.`;
   }
   const phi = formatPhi(triad.phi);
-  return `${tangleLine(triad.uInMajorComplex)}. ${platform.name} is ${triad.verdict} on your answers, and Φ is ${phi}.`;
+  return `${tangleLine(triad.phi, triad.uInMajorComplex, platform.app)}. ${platform.name} is ${triad.verdict} on your answers, and Φ is ${phi}.`;
+}
+
+export function displayExplanation(platformId: PlatformId, answers: number[], explanation: string) {
+  const triad = variantPhi(platformId, answers);
+  if (tangleKind(triad.phi, triad.uInMajorComplex) !== "pipe") return explanation;
+  if (/part of the tangle|outside the tangle/i.test(explanation)) {
+    return fallbackExplanation(platformId, answers);
+  }
+  return explanation;
 }
 
 export function buildFallback(platformId: PlatformId, answers: number[]): CoachCopy {
