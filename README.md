@@ -1,6 +1,6 @@
 # Algorithmacy Coach
 
-Algorithmacy Coach tells you two things about an app you use: whether the app's algorithm is a real third player between you and the people on the other side, and whether you are steering that algorithm or it is steering you.
+Algorithmacy Coach tells you two things about an app you use: whether the app's algorithm is a real third player, between you and the people on the other side, and whether you are steering that algorithm or it is steering you.
 
 A 60-second check. The score is a deterministic rubric. The structural verdict is exact Φ, precomputed with PyPhi.
 
