@@ -20,7 +20,7 @@ export type VariantPhi = PlatformPhi & {
 
 export const phiFile = phiResults;
 
-function asVerdict(value: string | null): TriadVerdict | null {
+export function asVerdict(value: string | null): TriadVerdict | null {
   if (value === "triadic" || value === "dyadic") return value;
   return null;
 }

@@ -3,11 +3,11 @@ import test from "node:test";
 
 import { fallbackTips } from "../data/fallbackTips";
 import { personas } from "../data/personas";
-import { getPlatform, platformIds } from "../data/platforms";
+import { getPlatform, isPlatformId, platformIds } from "../data/platforms";
 import { questions } from "../data/questions";
 import { buildFallback, displayExplanation } from "./coach-copy";
 import { parseCoachResponse } from "./parse-coach";
-import { coreLine, phiFile, platformPhi, tangleLine, variantKey, variantPhi } from "./phi";
+import { asVerdict, coreLine, phiFile, platformPhi, tangleLine, variantKey, variantPhi } from "./phi";
 import { scoreAnswers, shareText, weakestQuestions } from "./score";
 import { formatPhi, wordCount } from "./utils";
 
@@ -143,9 +143,11 @@ test("phi displays to two decimals and membership needs a tangle", () => {
 
   for (const [key, want] of Object.entries(expected)) {
     const row = phiFile.variants[key as keyof typeof phiFile.variants];
+    assert.equal(isPlatformId(row.platform), true, key);
+    if (!isPlatformId(row.platform)) continue;
     const platform = getPlatform(row.platform);
     const line = tangleLine(row.phi, row.u_in_major_complex, platform.app);
-    const core = coreLine(row.verdict, row.major_complex, platform.diagram);
+    const core = coreLine(asVerdict(row.verdict), row.major_complex, platform.diagram);
     assert.equal(line, want.line, key);
     assert.equal(core, want.core, key);
     assert.equal(formatPhi(row.phi), row.phi === 0.41503749927884376 ? "0.42" : row.phi.toFixed(2));
