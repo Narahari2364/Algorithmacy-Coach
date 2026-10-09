@@ -1,7 +1,10 @@
 import Link from "next/link";
 
+import { MathFound } from "@/components/math-found";
 import { TriadDiagram } from "@/components/triad-diagram";
 import { Button } from "@/components/ui/button";
+import { edgesFromRules } from "@/lib/explain";
+import { platformPhi } from "@/lib/phi";
 
 const problems = [
   {
@@ -51,6 +54,8 @@ export default function Home() {
         </div>
       </section>
 
+      <MathFound />
+
       <section className="mx-auto grid w-full max-w-5xl gap-4 px-5 pb-16 sm:grid-cols-3">
         {problems.map((item, index) => (
           <article key={item.title} className="rounded-3xl border border-line bg-card p-5">
@@ -79,8 +84,9 @@ export default function Home() {
         </div>
         <div className="rounded-3xl border border-line bg-card p-4">
           <TriadDiagram
-            verdict="triadic"
             labels={{ U: "You", A: "Algorithm", C: "Counterpart" }}
+            core={platformPhi("instagram").major_complex}
+            edges={edgesFromRules(platformPhi("instagram").rules)}
           />
           <p className="px-2 pb-2 text-center text-sm leading-6 text-muted">
             U, A, and C. The algorithm is a node in the triangle, not a neutral pipe drawn between two people.

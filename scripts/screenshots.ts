@@ -56,6 +56,7 @@ async function main() {
   const landingMobile = await open(mobile, base);
   await assertNoHorizontalScroll(landingMobile, "landing 390");
   await shot(landingMobile, "landing-mobile.png");
+  await landingDesktop.getByTestId("math-found").screenshot({ path: path.join(outDir, "math-found-desktop.png") });
 
   const narrow = await browser.newContext({ viewport: { width: 375, height: 812 } });
   const narrowPage = await open(narrow, base);
@@ -79,10 +80,11 @@ async function main() {
   await riya.getByRole("heading", { name: "Passive" }).waitFor();
   const riyaText = await riyaResults.innerText();
   if (
-    !riyaText.includes("There's no tangle here: Instagram acts like a pipe") ||
-    !riyaText.includes("Φ 0.00") ||
+    !riyaText.includes("No tangle for you") ||
+    !riyaText.includes("0.00") ||
     !riyaText.includes("Dyadic") ||
-    /part of the tangle|outside the tangle/i.test(riyaText)
+    /acts like a pipe/i.test(riyaText) ||
+    /Core Φ/.test(riyaText)
   ) {
     throw new Error(`Riya triad text missing computed values:\n${riyaText}`);
   }
@@ -98,13 +100,25 @@ async function main() {
   await sam.getByRole("heading", { name: "Deliberate" }).waitFor();
   const samText = await sam.getByTestId("results").innerText();
   if (
-    !samText.includes("You are part of the tangle") ||
-    !samText.includes("Φ 0.42") ||
-    !samText.includes("The core is you and the ranker.")
+    !samText.includes("You're in the game and steering it.") ||
+    !samText.includes("0.42") ||
+    !samText.includes("you + the ranker") ||
+    /Core Φ/.test(samText)
   ) {
     throw new Error(`Sam triad text missing computed values:\n${samText}`);
   }
+  const samHeadline = "You're in the game and steering it.";
+  if (samText.split(samHeadline).length - 1 !== 1) {
+    throw new Error("Sam headline is duplicated");
+  }
   await shot(sam, "results-sam-mobile.png");
+  await sam.getByTestId("toggle-alternatives").click();
+  await sam.getByTestId("change-note").waitFor();
+  const samNote = await sam.getByTestId("change-note").innerText();
+  if (!/tangle gets bigger/i.test(samNote)) {
+    throw new Error(`Sam what-if note missing:\n${samNote}`);
+  }
+  await shot(sam, "what-if-mobile.png");
 
   const email = await open(mobile, `${base}/coach`);
   await email.getByTestId("platform-email").click();
@@ -117,7 +131,7 @@ async function main() {
   if (
     !emailText.includes("There's no tangle here: Email acts like a pipe") ||
     !emailText.includes("Dyadic") ||
-    !emailText.includes("Φ 0.00") ||
+    !emailText.includes("0.00") ||
     !emailText.includes("A'=U; U'=U; C'=A") ||
     /part of the tangle|outside the tangle/i.test(emailText)
   ) {
@@ -126,6 +140,26 @@ async function main() {
   if (emailText.includes("U'=C")) {
     throw new Error("Email must use the forward-only rule U'=U");
   }
+  if (/Core Φ/.test(emailText)) throw new Error("Core Φ must not appear");
+
+  const uber = await open(mobile, `${base}/coach`);
+  await uber.getByTestId("platform-uber").click();
+  for (let i = 0; i < 6; i += 1) await uber.getByTestId("answer-0").click();
+  await uber.getByTestId("results").waitFor();
+  await uber.getByTestId("toggle-adapts").click();
+  const uberNote = await uber.getByTestId("change-note").innerText();
+  if (!/takes you out of the tangle|A knot forms/i.test(uberNote)) {
+    throw new Error(`Uber adapts-on note missing:\n${uberNote}`);
+  }
+  console.log(`uber no-alternatives adapts-on note: ${uberNote}`);
+
+  const aboutNarrow = await browser.newContext({ viewport: { width: 375, height: 812 } });
+  await aboutNarrow.addInitScript(forceLight);
+  const about = await open(aboutNarrow, `${base}/about`);
+  await about.getByRole("heading", { name: "The research behind it" }).waitFor();
+  await assertNoHorizontalScroll(about, "about 375");
+  await shot(about, "about-mobile.png");
+  await aboutNarrow.close();
 
   await riya.getByRole("button", { name: "Share my result" }).click();
   await riya.getByText("Copied.").waitFor();

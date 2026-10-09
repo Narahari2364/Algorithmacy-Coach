@@ -1,12 +1,11 @@
-import { buildFallback, type CoachCopy } from "@/lib/coach-copy";
+import { buildFallback, structureContext, type CoachCopy } from "@/lib/coach-copy";
 import { parseCoachResponse } from "@/lib/parse-coach";
-import { tangleLine, variantPhi } from "@/lib/phi";
 import { scoreAnswers } from "@/lib/score";
 import { fillTemplate, questions } from "@/data/questions";
 import { getPlatform, isPlatformId } from "@/data/platforms";
 import { NextResponse } from "next/server";
 
-const SYSTEM_PROMPT = `You are Algorithmacy Coach. Algorithmacy is the skill of navigating a coordination that runs through an algorithm you do not control. You receive a platform, a user's six rubric answers (0 passive, 1 mixed, 2 deliberate), their score and level, and a structural verdict for the platform (triadic means the algorithm is an irreducible third party between the user and the counterpart; dyadic means it acts like a pipe). If the tangle line says there is no tangle, do not say the person is inside or outside one.
+const SYSTEM_PROMPT = `You are Algorithmacy Coach. Algorithmacy is the skill of navigating a coordination that runs through an algorithm you do not control. You receive a platform, a user's six rubric answers (0 passive, 1 mixed, 2 deliberate), their coach level, a tangle headline, and a why-line about who reads whom. Triadic means the whole system is irreducible. Dyadic means it factors. Tips should fit that structure. If they are outside the tangle or there is no tangle, and their level is Passive or Aware, help them notice the algorithm and react on purpose. Do not repeat the tangle headline. Never write the label Core Φ. Say an app acts like a pipe only when the platform is Email.
 Reply with JSON only, no markdown, matching:
 {"headline": string (max 12 words), "explanation": string (max 45 words, plain English, mention the verdict), "tips": [string, string, string] (each max 25 words, concrete actions for this platform, aimed at their weakest answers)}
 Be warm and direct. No jargon beyond the word "algorithm". Never claim the score is a scientific measurement.`;
@@ -96,7 +95,8 @@ export async function POST(request: Request) {
   const answers = record.answers as number[];
   const platform = getPlatform(record.platform);
   const { score, level } = scoreAnswers(answers);
-  const triad = variantPhi(record.platform, answers);
+  const context = structureContext(record.platform, answers);
+  const triad = context.triad;
   const fallback = buildFallback(record.platform, answers);
 
   const userContent = JSON.stringify({
@@ -114,7 +114,9 @@ export async function POST(request: Request) {
       verdict: triad.verdict,
       phi: triad.phi,
       major_complex: triad.major_complex,
-      tangle: tangleLine(triad.phi, triad.uInMajorComplex, platform.app),
+      tangle: context.headline,
+      why: context.why,
+      level,
       rules: triad.rules,
     },
   });

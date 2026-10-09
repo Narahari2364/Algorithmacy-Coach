@@ -67,7 +67,7 @@ export function tangleLine(phi: number | null, uInMajorComplex: boolean, app: st
   return "";
 }
 
-function partyPhrase(code: string, labels: PartyLabels) {
+export function partyPhrase(code: string, labels: PartyLabels) {
   if (code === "U") return "you";
   const label = labels[code as keyof PartyLabels];
   return `the ${label.toLowerCase()}`;
@@ -88,15 +88,14 @@ export function coreLine(
   return null;
 }
 
-export function variantPhi(platform: PlatformId, answers: number[]): VariantPhi {
-  const switches = switchesFromAnswers(answers);
-  const key = `${platform}:${switches.adapts}:${switches.alternatives}`;
+export function variantBySwitches(platform: PlatformId, adapts: boolean, alternatives: boolean): VariantPhi {
+  const key = `${platform}:${adapts}:${alternatives}`;
   const row = phiResults.variants[key as keyof typeof phiResults.variants];
   if (!row) {
     return {
       key,
-      adapts: switches.adapts,
-      alternatives: switches.alternatives,
+      adapts,
+      alternatives,
       phi: null,
       verdict: null,
       competence: null,
@@ -117,4 +116,15 @@ export function variantPhi(platform: PlatformId, answers: number[]): VariantPhi 
     rules: row.rules,
     uInMajorComplex: Boolean(major?.includes("U")),
   };
+}
+
+export function variantPhi(platform: PlatformId, answers: number[]): VariantPhi {
+  const switches = switchesFromAnswers(answers);
+  return variantBySwitches(platform, switches.adapts, switches.alternatives);
+}
+
+export function platformVariants(platform: PlatformId): VariantPhi[] {
+  return [false, true].flatMap((adapts) =>
+    [false, true].map((alternatives) => variantBySwitches(platform, adapts, alternatives)),
+  );
 }

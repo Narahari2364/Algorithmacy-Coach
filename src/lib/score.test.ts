@@ -5,9 +5,10 @@ import { fallbackTips } from "../data/fallbackTips";
 import { personas } from "../data/personas";
 import { getPlatform, isPlatformId, platformIds } from "../data/platforms";
 import { questions } from "../data/questions";
-import { buildFallback, displayExplanation } from "./coach-copy";
+import { buildFallback } from "./coach-copy";
+import { changeNote, mathFindings, structureHeadline, whyLine } from "./explain";
 import { parseCoachResponse } from "./parse-coach";
-import { asVerdict, coreLine, phiFile, platformPhi, tangleLine, variantKey, variantPhi } from "./phi";
+import { asVerdict, coreLine, phiFile, platformPhi, variantKey, variantPhi } from "./phi";
 import { scoreAnswers, shareText, weakestQuestions } from "./score";
 import { formatPhi, wordCount } from "./utils";
 
@@ -92,51 +93,51 @@ test("phi displays to two decimals and membership needs a tangle", () => {
 
   const expected: Record<string, { line: string; core: string | null }> = {
     "instagram:false:false": {
-      line: "There's no tangle here: Instagram acts like a pipe",
+      line: "No tangle for you: you don't react to what the ranker does, so for you it just passes things along. Users who adapt to it get pulled in.",
       core: null,
     },
     "instagram:false:true": {
-      line: "There's no tangle here: Instagram acts like a pipe",
+      line: "No tangle for you: you don't react to what the ranker does, so for you it just passes things along. Users who adapt to it get pulled in.",
       core: null,
     },
     "instagram:true:false": {
-      line: "You are part of the tangle",
+      line: "You're in the game, but not steering yet.",
       core: null,
     },
     "instagram:true:true": {
-      line: "You are part of the tangle",
+      line: "You're in the game, but not steering yet.",
       core: "The core is you and the ranker.",
     },
     "uber:false:false": {
-      line: "There's no tangle here: Uber acts like a pipe",
+      line: "No tangle for you: you don't react to what the dispatch does, so for you it just passes things along. Users who adapt to it get pulled in.",
       core: null,
     },
     "uber:false:true": {
-      line: "There's no tangle here: Uber acts like a pipe",
+      line: "No tangle for you: you don't react to what the dispatch does, so for you it just passes things along. Users who adapt to it get pulled in.",
       core: null,
     },
     "uber:true:false": {
-      line: "You sit outside the tangle",
+      line: "You're carried along without reacting to it.",
       core: "The core is the dispatch and the rider.",
     },
     "uber:true:true": {
-      line: "You are part of the tangle",
+      line: "You're in the game, but not steering yet.",
       core: "The core is you and the dispatch.",
     },
     "email:false:false": {
-      line: "There's no tangle here: Email acts like a pipe",
+      line: "There's no tangle here: Email acts like a pipe.",
       core: null,
     },
     "email:false:true": {
-      line: "There's no tangle here: Email acts like a pipe",
+      line: "There's no tangle here: Email acts like a pipe.",
       core: null,
     },
     "email:true:false": {
-      line: "There's no tangle here: Email acts like a pipe",
+      line: "There's no tangle here: Email acts like a pipe.",
       core: null,
     },
     "email:true:true": {
-      line: "There's no tangle here: Email acts like a pipe",
+      line: "There's no tangle here: Email acts like a pipe.",
       core: null,
     },
   };
@@ -146,7 +147,7 @@ test("phi displays to two decimals and membership needs a tangle", () => {
     assert.equal(isPlatformId(row.platform), true, key);
     if (!isPlatformId(row.platform)) continue;
     const platform = getPlatform(row.platform);
-    const line = tangleLine(row.phi, row.u_in_major_complex, platform.app);
+    const line = structureHeadline(platform, row.phi, row.u_in_major_complex, "Passive");
     const core = coreLine(asVerdict(row.verdict), row.major_complex, platform.diagram);
     assert.equal(line, want.line, key);
     assert.equal(core, want.core, key);
@@ -159,16 +160,22 @@ test("phi displays to two decimals and membership needs a tangle", () => {
     }
   }
 
-  const emailCopy = buildFallback("email", [0, 0, 0, 0, 0, 0]);
-  assert.match(emailCopy.explanation, /There's no tangle here: Email acts like a pipe/);
-  assert.equal(/part of the tangle|outside the tangle/i.test(emailCopy.explanation), false);
-  const replaced = displayExplanation(
-    "email",
-    [0, 0, 0, 0, 0, 0],
-    "You are part of the tangle even though this is a pipe.",
-  );
-  assert.match(replaced, /There's no tangle here: Email acts like a pipe/);
-  assert.equal(/part of the tangle|outside the tangle/i.test(replaced), false);
+  const emailPlatform = getPlatform("email");
+  const emailHeadline = structureHeadline(emailPlatform, 0, true, "Passive");
+  assert.match(emailHeadline, /There's no tangle here: Email acts like a pipe/);
+  const instagramHeadline = structureHeadline(getPlatform("instagram"), 0, false, "Passive");
+  assert.equal(/acts like a pipe/i.test(instagramHeadline), false);
+  const uberOut = variantPhi("uber", [0, 0, 0, 2, 0, 0]);
+  const uberIn = variantPhi("uber", [0, 0, 0, 2, 0, 2]);
+  const note = changeNote(uberIn, uberOut, getPlatform("uber"));
+  assert.match(note ?? "", /takes you out of the tangle/);
+  const findings = mathFindings();
+  assert.equal(findings[0]?.focusKey, "uber:true:false");
+  assert.equal(findings[1]?.focusKey, "instagram:true:true");
+  assert.match(findings[0]?.line ?? "", /1\.00/);
+  assert.match(findings[1]?.line ?? "", /2\.00/);
+  assert.match(findings[1]?.line ?? "", /0\.42/);
+  assert.equal(/Core Φ/.test(whyLine(uberOut.rules, getPlatform("uber"))), false);
 });
 
 test("fallback copy stays inside the word limits", () => {

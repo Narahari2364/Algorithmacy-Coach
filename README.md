@@ -1,10 +1,8 @@
 # Algorithmacy Coach
 
-Algorithmacy Coach tells you two things about an app you use: whether the app's algorithm is a real third player between you and the people on the other side, and whether you are steering that algorithm or it is steering you.
+A one-minute check: is this app a pipe or a third player, and are you steering it?
 
-A 60-second check. The score is a deterministic rubric. The structural verdict is exact Φ, precomputed with PyPhi.
-
-Run it locally with `npm run dev` and open [http://127.0.0.1:43123](http://127.0.0.1:43123). A public Vercel URL is added here after the project is linked to a Vercel account.
+Live: [algorithmacy-coach-in4yqz6rd-hari-eaa7.vercel.app](https://algorithmacy-coach-in4yqz6rd-hari-eaa7.vercel.app)
 
 ![Landing page](docs/screenshots/landing-desktop.png)
 
@@ -12,115 +10,145 @@ Run it locally with `npm run dev` and open [http://127.0.0.1:43123](http://127.0
 
 | Reading | Question | Source |
 |---|---|---|
-| Structure (Triad Check) | Are you inside this model's tangle? | Φ on the variant picked by questions 4 and 6 |
-| Competence (Coach score) | Do you have it? | Six-question prototype rubric |
+| Structure (Triad Check) | Is there a tangle, and are you in its tightest core? | Whole-system Φ on the variant picked by questions 4 and 6 |
+| Competence (Coach score) | Are you steering? | Six-question prototype rubric, scored in the browser |
 
-## Riya and Sam
+## Screenshots
 
-Same platform, different variants, different people.
+![Landing, phone](docs/screenshots/landing-mobile.png)
 
-| | Riya | Sam |
-|---|---|---|
-| Answers | 0, 0, 0, 0, 1, 0 | 2, 2, 2, 2, 1, 2 |
-| Score | 1/12 Passive | 11/12 Deliberate |
-| Platform | Instagram | Instagram |
+![Riya](docs/screenshots/results-riya-mobile.png)
+![Sam](docs/screenshots/results-sam-mobile.png)
 
-![Riya, passive](docs/screenshots/results-riya-mobile.png)
-![Sam, deliberate](docs/screenshots/results-sam-mobile.png)
+![What if](docs/screenshots/what-if-mobile.png)
 
-## Architecture
+![Case study](docs/screenshots/about-mobile.png)
+
+## What the math found
+
+<!-- FINDINGS:START -->
+- **Uber: you can sit outside a real tangle.** When you adapt and keep no other way through, Uber is triadic at whole-system Φ 1.00. The tightest core is the dispatch and the rider. You are not in it. Caveat: in a simplified three-party model.
+- **Instagram: another channel shrinks the core.** Keeping another way to reach your audience shrinks the tightest core from you, the ranker, and the audience to you and the ranker. Whole-system Φ moves from 2.00 to 0.42. Caveat: in a simplified three-party model.
+<!-- FINDINGS:END -->
+
+## The research
+
+Roger Hunt's [algorithmacy-lab](https://github.com/rogerSuperBuilderAlpha/algorithmacy-lab) asks whether a worker, a mediating system, and a counterpart form an irreducible whole. Dyadic coordination factors into independent pieces and needs ordinary literacy. Triadic coordination stays irreducible across those three parties and needs algorithmacy. The lab measures that with exact Φ (IIT 4.0, PyPhi), fixes hypotheses before computing, reports nulls, and asks for real-world data. The lab is MIT licensed. The full walkthrough is the [case study](https://algorithmacy-coach-in4yqz6rd-hari-eaa7.vercel.app/about).
+
+## Diagrams
+
+### Architecture
 
 ```mermaid
 flowchart LR
-  U[User on phone] --> P[Next.js app on Vercel]
-  P --> S[Deterministic scorer]
-  P --> J[phi_results.json]
-  P --> G[api/coach]
-  G --> X[Grok via xAI API]
-  G -. fallback .-> F[Templated tips]
-  PY[PyPhi + algorithmacy-lab<br/>run once locally] --> J
+  B[Browser] --> N[Next.js on Vercel]
+  N --> S[Deterministic scorer]
+  N --> J[phi_results.json]
+  N --> A["/api/coach"]
+  A --> G[Grok]
+  A -. no key .-> F[Fallback tips]
+  P[PyPhi plus algorithmacy-lab<br/>offline, once] --> J
 ```
 
-Grok writes the headline, explanation, and tips. The score never depends on the model. If the key is missing, the call fails, or it takes longer than 8 seconds, the same screen fills from templated tips.
-
-## How the Triad Check works
+### Triad Check pipeline
 
 ```mermaid
 flowchart LR
-  A[Plain-English platform] --> M[3-node Boolean model<br/>user, algorithm, counterpart]
+  A[Platform] --> M[3-node model]
   M --> T[Transition table]
-  T --> PHI[Exact Φ with PyPhi]
-  PHI --> V{Irreducible across<br/>all three?}
-  V -- yes --> TRI[Triadic: demands algorithmacy]
-  V -- no --> DY[Dyadic: the app is a pipe]
+  T --> C[Lab classifier plus PyPhi]
+  C --> V[Verdict, whole-system Φ, tightest core]
 ```
 
-The verdict is the lab's own classifier: Φ over the minimum-information partition (`org_frontier.classifier.classify_rules`). Triadic when max Φ_MIP > 1e-9, otherwise dyadic. That call is on the whole three-node system, at its most-integrated reachable state. It is not Φ of the major complex, which is recorded separately with `org_frontier.probes.lib.major_complex`. A whole-system triadic label can still have a two-party core. Numbers below are whatever that run wrote into `public/data/phi_results.json`. They are not edited by hand. The card rounds Φ to two decimals.
+### Pipe vs third player
 
-The instrument control (`python -m org_frontier.classifier.validate`, the core check in `ci/reproduce.json`) passed before these values were written. See `phi/instrument_control.txt`.
-
-The three bases, before either switch:
-
-| Platform | U (user) | A (algorithm) | C (counterpart) | Rules | Verdict | Φ |
-|---|---|---|---|---|---|---|
-| Instagram | creator posts | feed ranker | audience | A'=U AND C; U'=A; C'=A | triadic | 2.00 |
-| Uber | driver goes online | dispatch | rider | A'=U AND C; U'=A; C'=A AND U | triadic | 1.00 |
-| Email (comparison) | sender | mail server | recipient | A'=U; C'=A; U'=U | dyadic | 0.00 |
-
-Email stays the forward-only chain from the lab's back-edge thread: the sender holds its own state and does not read the recipient. That base is what the switches edit.
-
-Two switches, applied on top of each base, make twelve models. Keys are `platform:adapts:alternatives`.
-
-- Adapts is question 4 scored 1 or 2. If not, `U' = U`: the user ignores the algorithm. If so, U keeps the base rule.
-- Alternatives is question 6 scored 2. If so, `C' = (base rule for C) OR U`: a direct channel from the user to the counterpart. If not, C keeps the base rule.
-
-The results screen looks up that key. "You are part of the tangle" appears only when Φ > 0 and U is in the major complex. Otherwise, if Φ > 0, the card says "You sit outside the tangle". If Φ = 0, it says "There's no tangle here: {app} acts like a pipe" and does not mention membership. When the classifier's whole-system label is triadic and the major complex has fewer than three parties, the card keeps "triadic" and names that core in plain English. Φ on the card is the classifier's max Φ_MIP, rounded to two decimals. None of these numbers were typed in by hand.
-
-| Key | Rules | Verdict | Φ | Major complex | Card |
-|---|---|---|---|---|---|
-| `instagram:false:false` | A'=U AND C; U'=U; C'=A | dyadic | 0.00 | A, C | There's no tangle here: Instagram acts like a pipe |
-| `instagram:false:true` | A'=U AND C; U'=U; C'=(A) OR U | dyadic | 0.00 | U | There's no tangle here: Instagram acts like a pipe |
-| `instagram:true:false` | A'=U AND C; U'=A; C'=A | triadic | 2.00 | U, A, C | You are part of the tangle |
-| `instagram:true:true` | A'=U AND C; U'=A; C'=(A) OR U | triadic | 0.42 | U, A | You are part of the tangle. The core is you and the ranker. |
-| `uber:false:false` | A'=U AND C; U'=U; C'=A AND U | dyadic | 0.00 | A, C | There's no tangle here: Uber acts like a pipe |
-| `uber:false:true` | A'=U AND C; U'=U; C'=(A AND U) OR U | dyadic | 0.00 | U | There's no tangle here: Uber acts like a pipe |
-| `uber:true:false` | A'=U AND C; U'=A; C'=A AND U | triadic | 1.00 | A, C | You sit outside the tangle. The core is the dispatch and the rider. |
-| `uber:true:true` | A'=U AND C; U'=A; C'=(A AND U) OR U | triadic | 2.00 | U, A | You are part of the tangle. The core is you and the dispatch. |
-| `email:false:false` | A'=U; U'=U; C'=A | dyadic | 0.00 | U | There's no tangle here: Email acts like a pipe |
-| `email:false:true` | A'=U; U'=U; C'=(A) OR U | dyadic | 0.00 | U | There's no tangle here: Email acts like a pipe |
-| `email:true:false` | A'=U; U'=U; C'=A | dyadic | 0.00 | U | There's no tangle here: Email acts like a pipe |
-| `email:true:true` | A'=U; U'=U; C'=(A) OR U | dyadic | 0.00 | U | There's no tangle here: Email acts like a pipe |
-
-Email's base already sets `U' = U`, so the adapts switch does not change its user rule. All four email variants stay dyadic at Φ 0.00, so the card calls Email a pipe and does not mention membership. `instagram:true:true` and `uber:true:true` stay triadic while the core is only you and the algorithm. `uber:true:false` stays triadic at Φ 1.00 with the core on dispatch and the rider, so you sit outside it.
-
-```json
-{
-  "variants": {
-    "instagram:false:false": {
-      "phi": 0.0,
-      "verdict": "dyadic",
-      "major_complex": ["A", "C"],
-      "u_in_major_complex": false,
-      "rules": "A'=U AND C; U'=U; C'=A"
-    }
-  }
-}
+```mermaid
+flowchart LR
+  subgraph Email
+    S1[You] --> M1[Server] --> R1[Recipient]
+  end
+  subgraph Instagram
+    S2[You] --> A2[Ranker]
+    R2[Audience] --> A2
+    A2 --> S2
+    A2 --> R2
+  end
 ```
+
+### Four variants
+
+```mermaid
+stateDiagram-v2
+  direction LR
+  noAdapt_noAlt --> adapt_noAlt: adapts on
+  adapt_noAlt --> noAdapt_noAlt: adapts off
+  noAdapt_noAlt --> noAdapt_other: alternatives on
+  noAdapt_other --> noAdapt_noAlt: alternatives off
+  adapt_noAlt --> adapt_other: alternatives on
+  adapt_other --> adapt_noAlt: alternatives off
+  noAdapt_other --> adapt_other: adapts on
+  adapt_other --> noAdapt_other: adapts off
+```
+
+### User flow
+
+```mermaid
+sequenceDiagram
+  actor User
+  participant App
+  participant JSON as phi_results.json
+  participant API as /api/coach
+  User->>App: Pick a platform
+  User->>App: Answer six questions
+  App->>App: Score in the browser
+  App->>JSON: Look up platform:adapts:alternatives
+  App->>API: Ask for tips
+  API-->>App: Grok tips, or the fallback
+  User->>App: Flip a what-if toggle
+  App->>JSON: Look up the other variant
+```
+
+## Models and results
+
+<!-- RESULTS:START -->
+Base models, from `phi_results.json`:
+
+| Platform | Rules | Verdict | Whole-system Φ |
+|---|---|---|---|
+| Instagram | A'=U AND C; U'=A; C'=A | triadic | 2.00 |
+| Uber | A'=U AND C; U'=A; C'=A AND U | triadic | 1.00 |
+| Email (comparison) | A'=U; C'=A; U'=U | dyadic | 0.00 |
+
+Switches: Q4 score >= 1 keeps the base rule for U; otherwise U'=U Q6 score == 2 sets C' = (base C) OR U; otherwise the base rule for C
+
+| Key | Rules | Verdict | Whole-system Φ | Tightest core |
+|---|---|---|---|---|
+| `instagram:false:false` | A'=U AND C; U'=U; C'=A | dyadic | 0.00 | the ranker and the audience |
+| `instagram:false:true` | A'=U AND C; U'=U; C'=(A) OR U | dyadic | 0.00 | you |
+| `instagram:true:false` | A'=U AND C; U'=A; C'=A | triadic | 2.00 | you, the ranker, and the audience |
+| `instagram:true:true` | A'=U AND C; U'=A; C'=(A) OR U | triadic | 0.42 | you and the ranker |
+| `uber:false:false` | A'=U AND C; U'=U; C'=A AND U | dyadic | 0.00 | the dispatch and the rider |
+| `uber:false:true` | A'=U AND C; U'=U; C'=(A AND U) OR U | dyadic | 0.00 | you |
+| `uber:true:false` | A'=U AND C; U'=A; C'=A AND U | triadic | 1.00 | the dispatch and the rider |
+| `uber:true:true` | A'=U AND C; U'=A; C'=(A AND U) OR U | triadic | 2.00 | you and the dispatch |
+| `email:false:false` | A'=U; U'=U; C'=A | dyadic | 0.00 | you |
+| `email:false:true` | A'=U; U'=U; C'=(A) OR U | dyadic | 0.00 | you |
+| `email:true:false` | A'=U; U'=U; C'=A | dyadic | 0.00 | you |
+| `email:true:true` | A'=U; U'=U; C'=(A) OR U | dyadic | 0.00 | you |
+<!-- RESULTS:END -->
 
 ## Scoring rubric
 
-Each answer scores 0 (passive), 1 (mixed), or 2 (deliberate). Total 0–12. Levels: 0–4 Passive, 5–8 Aware, 9–12 Deliberate.
+Each answer scores 0 (passive), 1 (mixed), or 2 (deliberate). Total 0–12. Levels: 0–4 Passive, 5–8 Aware, 9–12 Deliberate. This is a prototype rubric, not a validated measure.
 
 | # | Theme | 0 | 1 | 2 |
 |---|---|---|---|---|
-| 1 | Discovery | I just take what {app} shows me | A mix of feed and my own choices | I mostly search or go to things I picked |
+| 1 | Discovery | I just take what the app shows me | A mix of feed and my own choices | I mostly search or go to things I picked |
 | 2 | Understanding | No idea why things show up | A rough idea | I can name the signals it uses |
 | 3 | Tuning | I never adjust anything | Sometimes | I regularly mute, hide or reset |
 | 4 | Adapting | I never change how I act for it | Sometimes, without a plan | I test times, formats or zones on purpose |
 | 5 | Noticing | I don't notice being steered | Occasionally | I notice and decide whether to go along |
-| 6 | Alternatives | {app} is my only channel to {counterpart} | I use one other channel a bit | I keep real alternatives to reach {counterpart} |
-
-Question 6 echoes the lab's finding that a genuine substitute loosens a platform's hold.
+| 6 | Alternatives | This app is my only channel | I use one other channel a bit | I keep real alternatives |
 
 ## Run locally
 
@@ -128,28 +156,31 @@ Question 6 echoes the lab's finding that a genuine substitute loosens a platform
 npm install
 cp .env.example .env.local   # XAI_API_KEY is optional; XAI_MODEL defaults to grok-4.7
 npm run dev                  # http://127.0.0.1:43123
+npm test
+npm run build
+npm run docs                 # regenerate the results tables in this file
 ```
 
-Rerun the structural verdicts, after the lab checkout and the PyPhi venv described in `PLAN.md`:
+The fallback tips work with no `XAI_API_KEY`.
+
+Rerun the structural verdicts with Python 3.10+ after the lab checkout and the PyPhi venv described in `PLAN.md`:
 
 ```bash
 phi/.venv/bin/python phi/precompute_phi.py
 ```
 
-`phi/vendor` and `phi/.venv` are gitignored. The script refuses to write trusted verdicts if the instrument control fails.
+`phi/vendor` and `phi/.venv` are gitignored. The script refuses to write trusted verdicts if the instrument control fails. Do not type Φ values by hand.
 
-## Built with
+## Honest limitations
 
-Grok (xAI), Grok Bot in Cursor, PyPhi, [algorithmacy-lab](https://github.com/rogerSuperBuilderAlpha/algorithmacy-lab), Next.js, Vercel.
+- The platforms are simplified three-node binary models. Each party is on or off.
+- The numbers describe those models. They are not measurements of Instagram, Uber, or anyone's inbox.
+- The coach score is a prototype rubric. It is not a validated measure.
+- Φ is precomputed. Nothing calls PyPhi while you click.
+- Tips are pre-written when no `XAI_API_KEY` is set. Grok does not choose the score or the verdict.
 
-## Credits
+## Credits and license
 
-Inspired by Roger Hunt's algorithmacy research. Structural verdicts are computed with PyPhi (IIT 4.0) via the open algorithmacy-lab repo, on simplified three-party models of each platform.
+Inspired by Roger Hunt's algorithmacy research. Structural verdicts are computed with PyPhi (IIT 4.0) via [algorithmacy-lab](https://github.com/rogerSuperBuilderAlpha/algorithmacy-lab), which is MIT licensed.
 
-The coach score is a prototype rubric, not a validated measure.
-
-Your answers are not stored.
-
-## License
-
-MIT. algorithmacy-lab is also MIT; this project uses its classifier and does not vendor the lab into the deploy.
+This project is MIT. Your answers are not stored.

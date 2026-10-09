@@ -1,6 +1,7 @@
 import { fallbackTips } from "@/data/fallbackTips";
 import { getPlatform, type PlatformId } from "@/data/platforms";
-import { tangleKind, tangleLine, variantPhi } from "@/lib/phi";
+import { structureHeadline, whyLine } from "@/lib/explain";
+import { tangleKind, variantPhi, type TangleKind } from "@/lib/phi";
 import { scoreAnswers, weakestQuestions, type Level } from "@/lib/score";
 import { formatPhi } from "@/lib/utils";
 
@@ -16,6 +17,29 @@ export type CoachCopy = {
   tips: [string, string, string];
 };
 
+export function tipIndexes(answers: number[], kind: TangleKind | null, level: Level) {
+  const weakest = weakestQuestions(answers, 6);
+  if ((kind === "pipe" || kind === "outside") && level !== "Deliberate") {
+    const preferred = [4, 3].filter((index) => answers[index] < 2);
+    const rest = weakest.filter((index) => !preferred.includes(index));
+    return [...preferred, ...rest].slice(0, 3);
+  }
+  return weakest.slice(0, 3);
+}
+
+export function structureContext(platformId: PlatformId, answers: number[]) {
+  const platform = getPlatform(platformId);
+  const triad = variantPhi(platformId, answers);
+  const { level } = scoreAnswers(answers);
+  return {
+    triad,
+    level,
+    kind: tangleKind(triad.phi, triad.uInMajorComplex),
+    headline: structureHeadline(platform, triad.phi, triad.uInMajorComplex, level),
+    why: triad.rules ? whyLine(triad.rules, platform) : "",
+  };
+}
+
 export function fallbackExplanation(platformId: PlatformId, answers: number[]) {
   const platform = getPlatform(platformId);
   const triad = variantPhi(platformId, answers);
@@ -23,7 +47,7 @@ export function fallbackExplanation(platformId: PlatformId, answers: number[]) {
     return `Structural verdict coming soon. The model rules are ${triad.rules}.`;
   }
   const phi = formatPhi(triad.phi);
-  return `${tangleLine(triad.phi, triad.uInMajorComplex, platform.app)}. ${platform.name} is ${triad.verdict} on your answers, and Φ is ${phi}.`;
+  return `${platform.name} is ${triad.verdict} on your answers, and whole-system Φ is ${phi}.`;
 }
 
 export function displayExplanation(platformId: PlatformId, answers: number[], explanation: string) {
@@ -37,7 +61,8 @@ export function displayExplanation(platformId: PlatformId, answers: number[], ex
 
 export function buildFallback(platformId: PlatformId, answers: number[]): CoachCopy {
   const { level } = scoreAnswers(answers);
-  const tips = weakestQuestions(answers).map((index) => {
+  const context = structureContext(platformId, answers);
+  const tips = tipIndexes(answers, context.kind, level).map((index) => {
     const score = answers[index];
     if (score !== 0 && score !== 1 && score !== 2) {
       throw new Error("Answer out of range.");

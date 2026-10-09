@@ -10,6 +10,7 @@
     "test": "tsx --test src/lib/score.test.ts",
     "precompute": "phi/.venv/bin/python phi/precompute_phi.py",
     "screenshots": "tsx scripts/screenshots.ts",
+    "docs": "tsx scripts/gen-readme-tables.ts",
     "qr": "tsx scripts/write-qr.ts"
   },
   "dependencies": {

@@ -3,13 +3,14 @@
 import { ArrowLeft, Check, Share2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { TriadDiagram } from "@/components/triad-diagram";
+import { TriadCard } from "@/components/triad-card";
+import { WhatIf } from "@/components/what-if";
 import { Button } from "@/components/ui/button";
 import { personas, type PersonaId } from "@/data/personas";
 import { getPlatform, platforms, type PlatformId } from "@/data/platforms";
 import { fillTemplate, questions } from "@/data/questions";
-import { buildFallback, displayExplanation, type CoachCopy } from "@/lib/coach-copy";
-import { coreLine, tangleKind, tangleLine, variantPhi } from "@/lib/phi";
+import { buildFallback, structureContext, type CoachCopy } from "@/lib/coach-copy";
+import { tangleKind, variantBySwitches, variantPhi } from "@/lib/phi";
 import { scoreAnswers, shareText } from "@/lib/score";
 import { formatPhi } from "@/lib/utils";
 
@@ -24,6 +25,7 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
   const [remote, setRemote] = useState<(CoachCopy & { source: "grok" | "fallback" }) | null>(null);
   const [copied, setCopied] = useState(false);
   const [shareFallback, setShareFallback] = useState("");
+  const [view, setView] = useState<{ adapts: boolean; alternatives: boolean } | null>(null);
 
   const answerKey = answers.join(",");
 
@@ -35,7 +37,7 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
     const controller = new AbortController();
     let cancelled = false;
     const scored = scoreAnswers(parsed);
-    const triad = variantPhi(platformId, parsed);
+    const context = structureContext(platformId, parsed);
 
     fetch("/api/coach", {
       method: "POST",
@@ -47,10 +49,12 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
         score: scored.score,
         level: scored.level,
         triad: {
-          verdict: triad.verdict,
-          phi: triad.phi,
-          major_complex: triad.major_complex,
-          tangle: tangleLine(triad.phi, triad.uInMajorComplex, getPlatform(platformId).app),
+          verdict: context.triad.verdict,
+          phi: context.triad.phi,
+          major_complex: context.triad.major_complex,
+          tangle: context.headline,
+          why: context.why,
+          level: context.level,
         },
       }),
     })
@@ -91,6 +95,7 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
     setRemote(null);
     setCopied(false);
     setShareFallback("");
+    setView(null);
     setPhase("results");
   }
 
@@ -101,6 +106,7 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
     setRemote(null);
     setCopied(false);
     setShareFallback("");
+    setView(null);
     setPhase("ask");
   }
 
@@ -109,7 +115,10 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
     next[qIndex] = score;
     const trimmed = next.slice(0, qIndex + 1);
     setAnswers(trimmed);
-    if (qIndex === questions.length - 1) setPhase("results");
+    if (qIndex === questions.length - 1) {
+      setView(null);
+      setPhase("results");
+    }
     else setQIndex(qIndex + 1);
   }
 
@@ -126,6 +135,7 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
     setRemote(null);
     setCopied(false);
     setShareFallback("");
+    setView(null);
   }
 
   async function share() {
@@ -148,12 +158,12 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
     answers.length === 6 &&
     answers.every((score) => score === 0 || score === 1 || score === 2);
   const scored = ready ? scoreAnswers(answers) : null;
-  const triad = ready && platformId ? variantPhi(platformId, answers) : null;
+  const actual = ready && platformId ? variantPhi(platformId, answers) : null;
+  const viewed =
+    actual && platformId
+      ? variantBySwitches(platformId, view?.adapts ?? actual.adapts, view?.alternatives ?? actual.alternatives)
+      : null;
   const copy = ready && platformId ? (remote ?? buildFallback(platformId, answers)) : null;
-  const membership =
-    triad && platform ? tangleLine(triad.phi, triad.uInMajorComplex, platform.app) : "";
-  const core =
-    triad && platform ? coreLine(triad.verdict, triad.major_complex, platform.diagram) : null;
   const question = phase === "ask" ? questions[qIndex] : null;
 
   const personasBar = (
@@ -238,17 +248,18 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
         </section>
       ) : null}
 
-      {phase === "results" && platform && triad && scored && copy ? (
+      {phase === "results" && platform && actual && viewed && scored && copy ? (
         <section
           className="flex flex-col gap-4"
           data-testid="results"
           data-source={remote?.source ?? "fallback"}
           data-score={scored.score}
           data-level={scored.level}
-          data-variant={triad.key}
-          data-tangle={tangleKind(triad.phi, triad.uInMajorComplex) ?? "pending"}
-          data-phi={triad.phi === null ? "" : formatPhi(triad.phi)}
-          data-verdict={triad.verdict ?? "pending"}
+          data-variant={viewed.key}
+          data-actual={actual.key}
+          data-tangle={tangleKind(viewed.phi, viewed.uInMajorComplex) ?? "pending"}
+          data-phi={viewed.phi === null ? "" : formatPhi(viewed.phi)}
+          data-verdict={viewed.verdict ?? "pending"}
         >
           <div>
             <p className="text-sm uppercase tracking-[0.16em] text-muted">{platform.name}</p>
@@ -258,30 +269,13 @@ export function CoachFlow({ initialPersona }: { initialPersona: PersonaId | null
             </p>
           </div>
 
-          <article className="rounded-3xl border border-line bg-card p-5">
-            <p className="text-sm uppercase tracking-[0.16em] text-muted">Triad Check</p>
-            {triad.verdict && triad.phi !== null ? (
-              <>
-                <h2 className="mt-2 font-display text-3xl leading-tight">{membership}</h2>
-                <p className="mt-1 text-lg">Φ {formatPhi(triad.phi)}</p>
-                <p className="text-base capitalize text-muted">{triad.verdict}</p>
-                {core ? (
-                  <p className="mt-1 text-base" data-testid="core-members">
-                    {core}
-                  </p>
-                ) : null}
-              </>
-            ) : (
-              <h2 className="mt-2 font-display text-3xl leading-tight">Structural verdict coming soon</h2>
-            )}
-            <p className="mt-3 text-base leading-7">
-              {platformId ? displayExplanation(platformId, answers, copy.explanation) : copy.explanation}
-            </p>
-            <div className="mt-4">
-              <TriadDiagram verdict={triad.verdict} labels={platform.diagram} />
-            </div>
-            <p className="break-words font-mono text-sm text-muted">{triad.rules}</p>
-          </article>
+          <TriadCard platform={platform} variant={viewed} level={scored.level} />
+          <WhatIf
+            platform={platform}
+            actual={actual}
+            viewed={viewed}
+            onChange={(next) => setView(next)}
+          />
 
           <article className="rounded-3xl border border-line bg-card p-5">
             <p className="text-sm uppercase tracking-[0.16em] text-muted">Coach score</p>
